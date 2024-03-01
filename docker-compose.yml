@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  nodejs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nodejs
+    container_name: dogwalker_backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MONGO_URL=$MONGO_USERNAME
+      - SECRET_KEY=$SECRET_KEY
+      - WEB_PORT=$WEB_PORT
+    ports:
+      - "80:3005"
+    volumes:
+      - .:/home/node/app
+      - node_modules:/home/node/app/node_modules
+    networks:
+      - app-network
+    command: ./wait-for.sh db:27017 -- /home/node/app/node_modules/.bin/nodemon app.js
