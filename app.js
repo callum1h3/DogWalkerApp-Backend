@@ -3,12 +3,9 @@ const app = express()
 const bodyParser = require('body-parser')
 
 // Makes it so we can change these settings when the project is containized.
-const {
-    MONGO_URL = 'mongodb+srv://callum1h1:eP1TLNS5QrSPMsIL@cluster0.eywkujf.mongodb.net/',
-    SECRET_KEY = 'sbjbdfhsf2!!1kjjaj1!A',
-    WEB_PORT = 3005,
-} = process.env;
-  
+const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://callum1h1:eP1TLNS5QrSPMsIL@cluster0.eywkujf.mongodb.net/';
+const SECRET_KEY = process.env.SECRET_KEY || 'sbjbdfhsf2!!1kjjaj1!A';
+const WEB_PORT = process.env.WEB_PORT || 3005;
 const mongoose = require('mongoose');
 
 // Connect to the database.
@@ -24,15 +21,36 @@ const User = mongoose.model('User', userSchema);
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+async function FindUserByName(username)
+{
+    const user = await User.findOne({ username });
+    return user;
+}
  
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+
+    next();
+});
 
 // Basic registration and login code.
 app.post('/register/', async (req, res) => {
     try {
         // Gets the login credentals from post request.
         const { username, password } = req.body;
-        
+
+        // Checks if that username already exists
+        const user_check = await FindUserByName(username);
+        if (user_check)
+        {
+            return res.status(500).json({ error: 'User already exists' });
+        }
+
         // Turns the password into a hashed password for security.
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -40,11 +58,12 @@ app.post('/register/', async (req, res) => {
         const user = new User({ username, password: hashedPassword });
         await user.save();
 
-        res.status(201).json({ message: 'User registered successfully' });
+        console.log(username + " has successfully registered!");
+
+        return res.status(200).json({ message: 'User registered successfully' });
     } 
     catch (error) {
-        res.status(500).json({ error: 'Registration failed' });
-        console.log(error);
+        return res.status(500).json({ error: 'Registration failed' });
     }
 })
 
@@ -53,7 +72,7 @@ app.post('/login/', async (req, res) => {
     try {
 
         const { username, password } = req.body;
-        const user = await User.findOne({ username });
+        const user = await FindUserByName(username);
         if (!user) {
         return res.status(401).json({ error: 'Authentication failed' });
         }
@@ -61,19 +80,24 @@ app.post('/login/', async (req, res) => {
         if (!passwordMatch) {
         return res.status(401).json({ error: 'Authentication failed' });
         }
-        const token = jwt.sign({ userId: user._id }, SECRET_KEY, {
+        const token = jwt.sign({ userId: user._id, username: username }, SECRET_KEY, {
         expiresIn: '1h',
         });
-        res.status(200).json({ token });
-        } catch (error) {
-        res.status(500).json({ error: 'Login failed' });
+
+        return res.status(200).json({ token });
+    } catch (error) {
+        return res.status(500).json({ error: 'Login failed' });
     }
 })
 
 app.post('/verify/', async (req, res) => {
     try {
         const { token } = req.body;
-        if (!token) return res.status(401).json({ error: 'Access denied' });
+        if (!token)
+        { 
+            console.log("Token not valid!");
+            return res.status(401).json({ error: 'Access denied' });
+        }
         const decoded = jwt.verify(token, SECRET_KEY);
 
         return res.status(200).json({decoded});
