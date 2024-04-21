@@ -1,5 +1,5 @@
 FROM dogwalker_backend:14
-WORKINGDIR /app
+WORKDIR  /app
 COPY package*.json app.js ./
 RUN npm install
 EXPOSE 3005
