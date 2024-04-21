@@ -7,6 +7,7 @@ on:
     branches: [ "main" ]
 env:
   MONGO_URL: ${{secrets.MONGODB_URI}
+  
 jobs:
 
   build:
