@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
 env:
-  MONGO_URL: ${{secrets.MONGODB_URI}
+  MONGO_URL: ${{secrets.MONGODB_URI}}
   
 jobs:
 
