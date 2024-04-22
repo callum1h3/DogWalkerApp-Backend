@@ -21,6 +21,6 @@ jobs:
     - name: Tag the Docker image
       run: docker tag emp callum1h3/dogwalkerapp-backend:latest
     - name: Docker Login
-      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      run: docker login -u="${{ secrets.DOCKER_USERNAME }}" -p="${{ secrets.DOCKER_PASSWORD }}"
     - name: docker push
       run: docker push callum1h3/dogwalkerapp-backend:latest
