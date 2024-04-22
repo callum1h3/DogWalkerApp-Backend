@@ -108,7 +108,7 @@ app.post('/verify/', async (req, res) => {
     }
 })
 
-app.listen(WEB_PORT, () => console.log('server ready'))
+app.listen(3005, () => console.log(MONGO_URL))
 
 
 
