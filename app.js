@@ -108,7 +108,8 @@ app.post('/verify/', async (req, res) => {
     }
 })
 
-app.listen(3005, () => console.log(MONGO_URL))
+const httpServer = http.createServer(app);
+httpServer.listen(3005, () => console.log("server is running!"))
 
 
 
